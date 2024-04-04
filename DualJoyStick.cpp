@@ -36,11 +36,13 @@ void DualJoyStick::pressMouseKey(CHAR c) {
 	switch (c){
 	case 'l':
 		flag = MOUSEEVENTF_LEFTDOWN;
+		break;
 	case'L':
 		flag = MOUSEEVENTF_LEFTDOWN;
 			break;
 	case 'r':
 		flag = MOUSEEVENTF_RIGHTDOWN;
+		break;
 	case 'R':
 		flag = MOUSEEVENTF_RIGHTDOWN;
 		break;
@@ -58,11 +60,13 @@ void DualJoyStick::releaseMouseKey(CHAR c) {
 	switch (c) {
 	case 'l':
 		flag = MOUSEEVENTF_LEFTUP;
+		break;
 	case'L':
 		flag = MOUSEEVENTF_LEFTUP;
 		break;
 	case 'r':
 		flag = MOUSEEVENTF_RIGHTUP;
+		break;
 	case 'R':
 		flag = MOUSEEVENTF_RIGHTUP;
 		break;
@@ -253,7 +257,7 @@ void DualJoyStick::handleButtonsLeft() {
 	else {
 		m_buttonL1 = _BUTTON_RELEASED;
 		// std::cout << "Released BL1: " << (int*)m_j2State << std::endl;
-		releaseKey('R');
+		releaseKey('F');
 	}
 	
 	// ----------- 2 -------------------------
@@ -342,23 +346,26 @@ void DualJoyStick::handleButtonsLeft() {
 		if (m_buttonR1 & _BUTTON_PRESSED) {
 			m_buttonR1 |= _BUTTON_PRESSED;
 			m_buttonR1 |= _BUTTON_HELD;
-			//std::cout << "Held BR1: " << (int*)m_j2State << std::endl;
+			std::cout << "Held BR1: " << (int*)m_j2State << std::endl;
 
 
 		}
 
 		else {
 			m_buttonR1 |= _BUTTON_PRESSED;
-			//std::cout << "Pressed BR1: " << (int*)m_j2State << std::endl;
-			pressMouseKey('l');
+			std::cout << "Pressed BR1: " << (int*)m_j2State << std::endl;
+			pressMouseKey('L');
 		}
 
 
 	}
 	else {
+		if (m_buttonR1 & _BUTTON_PRESSED)
+			releaseMouseKey('L');
 		m_buttonR1 = _BUTTON_RELEASED;
-		//std::cout << "Released BR1: " << (int*)m_j2State << std::endl;
-		releaseMouseKey('l');
+		std::cout << "Released BR1: " << (int*)m_j2State << std::endl;
+		
+		
 	}
 
 	if (m_joy1 & _BUTTON_2_RECV) {
@@ -425,15 +432,19 @@ void DualJoyStick::handleButtonsLeft() {
 		else {
 			m_buttonJR |= _BUTTON_PRESSED;
 			std::cout << "Pressed JR: " << (int*)m_j2State << std::endl;
-			//pressMouseKey('r');
+			pressMouseKey('R');
 		}
 
 
 	}
 	else {
+		if (m_buttonJR & _BUTTON_PRESSED)
+			releaseMouseKey('R');
+
 		m_buttonJR = _BUTTON_RELEASED;
 		std::cout << "Released JR: " << (int*)m_j2State << std::endl;
-		//releaseMouseKey('r');
+		
+		
 	}
 
 
