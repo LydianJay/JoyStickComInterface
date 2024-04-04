@@ -25,6 +25,20 @@
 #define _BUTTON_3_PRESSED	0b10000000
 
 
+#define _JOY_HELD_UP			0b00000001
+#define _JOY_HELD_DOWN			0b00000010
+#define _JOY_HELD_LEFT			0b00000100
+#define _JOY_HELD_RIGHT			0b00001000
+
+#define _JOY_PRESSED_UP			0b10000000
+#define _JOY_PRESSED_DOWN		0b01000000
+#define _JOY_PRESSED_LEFT		0b00100000
+#define _JOY_PRESSED_RIGHT		0b00010000
+
+#define _JOY_RELEASED			0b00000000
+
+
+
 void MouseSetup(INPUT* buffer) {
 	buffer->type = INPUT_MOUSE;
 	buffer->mi.dx = (0 * (0xFFFF / SCREEN_WIDTH));
@@ -36,13 +50,25 @@ void MouseSetup(INPUT* buffer) {
 }
 
 
-void MouseMoveAbsolute(INPUT* buffer, int x, int y) {
-	buffer->mi.dx = x * (0xFFFF / (GetSystemMetrics(SM_CXSCREEN) - 1));
-	buffer->mi.dy = y * (0xFFFF / (GetSystemMetrics(SM_CYSCREEN) - 1));
-	buffer->mi.dwFlags = ( MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE);
-
-	SendInput(1, buffer, sizeof(INPUT));
+void pressKey(CHAR c) {
+	INPUT in = {};
+	ZeroMemory(&in, sizeof(INPUT));
+	in.type = INPUT_KEYBOARD;
+	in.ki.dwFlags = KEYEVENTF_SCANCODE;
+	in.ki.wScan = MapVirtualKeyA(LOBYTE(VkKeyScanA(c)), 0);
+	SendInput(1, &in, sizeof(in));
 }
+
+void releaseKey(CHAR c) {
+	INPUT in = {};
+	ZeroMemory(&in, sizeof(INPUT));
+	in.type = INPUT_KEYBOARD;
+	in.ki.dwFlags = (KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP);
+	in.ki.wScan = MapVirtualKeyA(LOBYTE(VkKeyScanA(c)), 0);
+	SendInput(1, &in, sizeof(in));
+}
+
+
 
 int main() {
 
@@ -92,6 +118,11 @@ int main() {
 
 	uint8_t joy1 = _JOY_IDLE;
 	uint8_t joy2 = _JOY_IDLE;
+
+	uint8_t joy1HeldState = _JOY_IDLE;
+	uint8_t joy2HeldState = _JOY_IDLE;
+
+
 
 	while (true) {
 		
@@ -154,126 +185,104 @@ int main() {
 		
 
 
-		if (joy2 & _JOY_INV_RIGHT) {
-			
-
-			INPUT in = {};
-			ZeroMemory(&in, sizeof(INPUT));
-			in.type = INPUT_KEYBOARD;
-			in.ki.wVk = 'A';
-			in.ki.dwFlags = 0;
-			SendInput(1, &in, sizeof(in));
-
-			INPUT r = {};
-			r.type = INPUT_KEYBOARD;
-			r.ki.wVk = 'A';
-			r.ki.dwFlags = KEYEVENTF_KEYUP;
-
-			SendInput(1, &r, sizeof(r));
-		}
+		
+		
 		
 
-		if (joy2 & _JOY_INV_LEFT) {
-			INPUT in = {};
-			ZeroMemory(&in, sizeof(INPUT));
-			in.type = INPUT_KEYBOARD;
-			in.ki.dwFlags = 0;
-			in.ki.wVk = 'D';
-			SendInput(1, &in, sizeof(in));
-			INPUT r = {};
-			r.type = INPUT_KEYBOARD;
-			r.ki.wVk = 'D';
-			r.ki.dwFlags = KEYEVENTF_KEYUP;
-
-			SendInput(1, &r, sizeof(r));
-
-		}
-
-
-		if (joy2 & _JOY_INV_DOWN) {
-			INPUT in = {};
-			ZeroMemory(&in, sizeof(INPUT));
-			in.type = INPUT_KEYBOARD;
-			in.ki.dwFlags = 0;
-			in.ki.wVk = 'W';
-
-			SendInput(1, &in, sizeof(in));
-			in.type = INPUT_KEYBOARD;
-			in.ki.wVk = 'W';
-			in.ki.dwFlags = KEYEVENTF_KEYUP;
-
-			SendInput(1, &in, sizeof(in));
-
-		}
-		if (joy2 & _JOY_INV_UP) {
-			INPUT in = {};
-			ZeroMemory(&in, sizeof(INPUT));
-			in.type = INPUT_KEYBOARD;
-			in.ki.dwFlags = 0;
-			in.ki.wVk = 'S';
-			in.ki.dwExtraInfo = 0;
-			SendInput(1, &in, sizeof(in));
-			in.type = INPUT_KEYBOARD;
-			in.ki.wVk = 'S';
-			in.ki.dwFlags = KEYEVENTF_KEYUP;
-
-			SendInput(1, &in, sizeof(in));
-			
-		}
 		
 		uint8_t buffer[2] = {};
 
 		serialCom.getSerialData((uint8_t*)buffer, 2);
 
+		joy1 = buffer[0];
+		joy2 = buffer[1];
 
+		// X Axis
+		if (joy2 & _JOY_INV_LEFT) {
 
+			if (joy2HeldState & _JOY_PRESSED_LEFT) {
+				
+				joy2HeldState |= _JOY_HELD_LEFT;
+				std::cout << "Held Left: " << (int*)joy2HeldState << std::endl;
+				
 
-		if (buffer[0] != 0 || buffer[1] != 0) {
+			}
 			
-			// std::cout << "data rec\n";
-			if (joy1 != buffer[0]) {
-				joy1 = buffer[0];
+			else {
+				joy2HeldState |= _JOY_PRESSED_LEFT;
+				std::cout << "Pressed Left: " << (int*)joy2HeldState << std::endl;
+				pressKey('A');
 			}
+			
+			
+		}
+		else if (joy2 & _JOY_INV_RIGHT) {
+			if (joy2HeldState & _JOY_PRESSED_RIGHT) {
+				joy2HeldState |= _JOY_HELD_RIGHT;
+				std::cout << "Held Right: " << (int*)joy2HeldState << std::endl;
+				
 
-			if (joy2 != buffer[1]) {
-				joy2 = buffer[1];
 			}
+			else {
+				joy2HeldState |= _JOY_PRESSED_RIGHT;
+				std::cout << "Pressed Right: " << (int*)joy2HeldState << std::endl;
+				pressKey('D');
 
+			}
+		}
+		else {
+
+			if (joy2HeldState & _JOY_HELD_LEFT) releaseKey('A');
+			if (joy2HeldState & _JOY_HELD_RIGHT) releaseKey('D');
+			uint8_t masking = ~((_JOY_PRESSED_RIGHT | _JOY_PRESSED_LEFT) | (_JOY_HELD_RIGHT | _JOY_HELD_LEFT));
+
+			joy2HeldState &= masking;
+			std::cout << "Released L/R" << (int*)joy2HeldState << std::endl;
 		}
 
 
-		/*
-		if ( serialCom.serialIsReadAvailable()) {
-			const auto& buffer = serialCom.serialGetReadBuffer();
-			
-			if (buffer.size == 2) {
-				if (buffer.data[1] & _JOY_LEFT) {
-					p.x -= 16;
-				}
-				else if (buffer.data[1] & _JOY_RIGHT) {
-					p.x += 16;
-				}
-				if (buffer.data[1] & _JOY_UP) {
-					p.y -= 16;
-				}
-				else if (buffer.data[1] & _JOY_DOWN) {
-					p.y += 16;
-				}
-				MouseMoveAbsolute(&input, p.x, p.y);
+		// Y axis
 
+		if (joy2 & _JOY_INV_UP) {
 
+			if (joy2HeldState & _JOY_PRESSED_UP) {
 
-				std::cout << "Read: " << (int*)buffer.data[1] << std::endl;
-				std::cout << "Size: " << buffer.size << std::endl;
+				joy2HeldState |= _JOY_HELD_UP;
+				std::cout << "Held Up: " << (int*)joy2HeldState << std::endl;
+
 			}
-			
+
+			else {
+				joy2HeldState |= _JOY_PRESSED_UP;
+				std::cout << "Pressed Up: " << (int*)joy2HeldState << std::endl;
+				pressKey('W');
+			}
+
+
 		}
+		else if (joy2 & _JOY_INV_DOWN) {
+			if (joy2HeldState & _JOY_PRESSED_DOWN) {
+				joy2HeldState |= _JOY_HELD_DOWN;
+				std::cout << "Held Down: " << (int*)joy2HeldState << std::endl;
+
+			}
+			else {
+				joy2HeldState |= _JOY_PRESSED_DOWN;
+				std::cout << "Pressed Down: " << (int*)joy2HeldState << std::endl;
+				pressKey('S');
+			}
+		}
+		else {
+			if (joy2HeldState & _JOY_HELD_UP) releaseKey('W');
+			if (joy2HeldState & _JOY_HELD_DOWN) releaseKey('S');
+
+			uint8_t masking = ~( (_JOY_PRESSED_DOWN | _JOY_PRESSED_UP) | (_JOY_HELD_UP | _JOY_HELD_DOWN) );
+			joy2HeldState &= masking;
+			//std::cout << "Released Up/Down" << (int*)joy2HeldState << std::endl;
 		
-		if (lastSaveState) {
+		}
 
-		}*/
-
-		// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	
 	}
 
 

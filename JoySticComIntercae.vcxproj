@@ -127,10 +127,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DualJoyStick.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="winserial\WinSerial.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DualJoyStick.h" />
     <ClInclude Include="winserial\WinSerial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

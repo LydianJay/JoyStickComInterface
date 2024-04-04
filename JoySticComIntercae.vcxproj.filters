@@ -24,10 +24,16 @@
     <ClCompile Include="winserial\WinSerial.cpp">
       <Filter>winserial</Filter>
     </ClCompile>
+    <ClCompile Include="DualJoyStick.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winserial\WinSerial.h">
       <Filter>winserial</Filter>
+    </ClInclude>
+    <ClInclude Include="DualJoyStick.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
